@@ -16,6 +16,10 @@ const courseSchema = new mongoose.Schema(
             type: String,
             trim: true
         },
+        modules: {
+            type: Array,
+            default: []
+        },
         lessons: {
             type: Array,
             default: []

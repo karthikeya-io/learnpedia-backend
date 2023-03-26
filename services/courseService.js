@@ -28,6 +28,50 @@ class CourseService {
 
     }
 
+    async createModule(module) {
+        try {
+            const course = await this.courseRepository.findCourseById(module.courseId);
+            if (!course) {
+                return { error: 'Course not found', status: 401 };
+            }
+            const moduleCreated = await this.courseRepository.createModule(module);
+            course.modules.push(moduleCreated);
+            await course.save();
+            return moduleCreated;
+        } catch (error) {
+            return { error: error.message, status: 500 };
+        }
+    }
+    
+    async createLesson(lesson, fileName) {
+        try {
+            const module = await this.courseRepository.findModuleById(lesson.moduleId);
+            if (!module) {
+                return { error: 'Module not found', status: 401 };
+            }
+            const lessonCreated = await this.courseRepository.createLesson(lesson, fileName);
+            module.lessons.push(lessonCreated);
+            await module.save();
+            return lessonCreated;
+        } catch (error) {
+            return { error: error.message, status: 500 };
+        }
+    }
+    
+    //get course by id
+    async getCourseById(courseId) {
+        try {
+            const course = await this.courseRepository.findCourseById(courseId);
+            if (!course) {
+                return { error: 'Course not found', status: 401 };
+            }
+            return course;
+        } catch (error) {
+            console.log(error);
+            return { error: error.message, status: 500 };   
+        }
+    }
+
     //search course by substring of title
     async searchCourseByTitle(title) {
         const regex = new RegExp(data.cname, 'i') // 'i' makes it case insensitive
@@ -47,6 +91,24 @@ class CourseService {
             const courses = await (await user.populate('educator')).educator.createdcourses;
             return courses;
         } catch (error) {
+            return { error: error.message, status: 500 };
+        }
+    }
+
+    async getModules(courseId, userId) {
+        try {
+            const course = await this.courseRepository.findCourseById(courseId);
+            if (!course) {
+                return { error: 'Course not found', status: 401 };
+            }
+            course.populate('educator')
+            if (!course.educator._id.equals(userId)) {
+                return { error: 'Unauthorized', status: 401 };
+            }
+            const modules = await course.populate('modules');
+            return modules;
+        } catch (error) {
+            console.log(error);
             return { error: error.message, status: 500 };
         }
     }

@@ -7,15 +7,6 @@ const lessonSchema = new mongoose.Schema(
             required: true,
             trim: true,
         },
-        moduleno: {
-            type: Number,
-            required: true,
-        },
-        modulename: {
-            type: String,
-            required: true,
-            trim: true,
-        },
         desc: {
             type: String,
             trim: true
