@@ -52,6 +52,27 @@ exports.lessonUpload = (req, res) => {
     });
 }
 
+exports.enrollCourse = (req, res) => {
+    const courseservice = new courseService();
+    courseservice.enrollCourse(req.course._id, req.profile._id).then((result) => {
+        res.status(200).json(result);
+    }).catch((err) => {
+        console.log(err);
+        res.status(500).json(err);
+    });
+}
+
+//get all courses
+exports.getAllCourses = (req, res) => {
+    const courseservice = new courseService();
+    courseservice.getAllCourses().then((result) => {
+        res.status(200).json(result);
+    }).catch((err) => {
+        console.log(err);
+        res.status(500).json(err);
+    });
+}
+
 //educator created courses
 exports.getUserCourses = (req, res) => {
     const courseservice = new courseService();

@@ -2,9 +2,10 @@ const express = require('express');
 const router = express.Router();
 const { check, validationResult } = require('express-validator');
 const { isSignedIn, isAuthenticated, isEducator } = require('../controllers/authController');
-const { courseUpload, getUserCourses, moduleUpload, getCoursesById, getModules, isHisCourse, lessonUpload } = require('../controllers/courseController');
+const { courseUpload, getUserCourses, moduleUpload, getCoursesById, getModules, isHisCourse, lessonUpload, getAllCourses, enrollCourse } = require('../controllers/courseController');
 const { getUserById } = require('../controllers/userController');
 const multer = require('multer');
+
 
 // Set up multer middleware for file uploads
 const storage = multer.diskStorage({
@@ -29,11 +30,14 @@ router.post('/courseupload/:userId', [
 router.post('/moduleupload/:userId', isSignedIn, isAuthenticated, isEducator, moduleUpload);
 
 
+router.get('/courses', getAllCourses)
+
 //educator created courses
 router.get('/courses/:userId', isSignedIn, isAuthenticated, isEducator, getUserCourses);
 router.get('/module/:userId/:courseId', isSignedIn, isAuthenticated, isEducator, getModules);
 router.post('/lesson/:userId/:courseId', isSignedIn, isAuthenticated, isEducator,isHisCourse, upload.single('video'),
 lessonUpload);
 
+router.post('/enroll/:userId/:courseId', isSignedIn, isAuthenticated, enrollCourse);
 
 module.exports = router;

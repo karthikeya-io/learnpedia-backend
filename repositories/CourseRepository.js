@@ -23,7 +23,7 @@ class CourseRepository {
         return await Course.findById(id);
     }
 
-    async getallCourses() {
+    async getAllCourses() {
         return await Course.find();
     }
 

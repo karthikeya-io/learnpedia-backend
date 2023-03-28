@@ -57,7 +57,36 @@ class CourseService {
             return { error: error.message, status: 500 };
         }
     }
+
+    async enrollCourse(courseId, userId) {
+        try {
+            const course = await this.courseRepository.findCourseById(courseId);
+            if (!course) {
+                return { error: 'Course not found', status: 401 };
+            }
+            const user = await this.userRepository.findById(userId);
+            if (!user) {
+                return { error: 'User not found', status: 401 };
+            }
+            //enroll only if not already enrolled use arrow function to check id
+            console.log(user.courses);
+            console.log(courseId);
+            const value = user.courses.some((item) => item._id.equals(courseId));
+            if (value) {
+                return { error: 'Already enrolled', status: 401 };
+            }
+            user.courses.push(course);
+            await user.save();
+            return course;
+        } catch (error) {
+            return { error: error.message, status: 500 };
+        }
+    }
     
+    async getAllCourses() {
+        return await this.courseRepository.getAllCourses();
+    }
+
     //get course by id
     async getCourseById(courseId) {
         try {

@@ -73,7 +73,7 @@ exports.isSignedIn = (req, res, next) => {
 exports.isAuthenticated = (req, res, next) => {
         console.log('isAuthenticated');
         console.log(req.profile._id);
-        console.log(req.profile._id);
+        console.log(req.user._id);
         if(!req.profile._id.equals(req.user._id)) {
             return res.status(401).json({
                 error: "User not authorized"
