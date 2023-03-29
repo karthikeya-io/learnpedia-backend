@@ -36,9 +36,9 @@ class AuthService {
         }
         const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET, { expiresIn: '1d' });
 
-        const { _id, firstname, role } = user;
+        const { _id, firstname, lastname, role, phoneno } = user;
 
-        return { token, user: { _id, firstname, email, role } };
+        return { token, user: { _id, firstname, email, role, lastname, phoneno } };
 
 
     }
@@ -55,7 +55,7 @@ class AuthService {
             }
             return user;
         } catch (err) {
-            console.log(err)
+            throw err;
             return { error: 'User not logged in', status: 401 };
         }
     }

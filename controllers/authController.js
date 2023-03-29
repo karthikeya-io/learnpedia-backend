@@ -63,6 +63,11 @@ exports.isSignedIn = (req, res, next) => {
         req.user = result;
         next();
     }).catch((err) => {
+        if (err.name === 'TokenExpiredError') {
+            return res.status(401).json({
+                error: "Token expired"
+            });
+        }
         res.status(401).json({
             error: "User not logged in"
         });

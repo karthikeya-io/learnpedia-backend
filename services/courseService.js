@@ -87,6 +87,7 @@ class CourseService {
         return await this.courseRepository.getAllCourses();
     }
 
+
     //get course by id
     async getCourseById(courseId) {
         try {

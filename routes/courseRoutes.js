@@ -3,7 +3,7 @@ const router = express.Router();
 const { check, validationResult } = require('express-validator');
 const { isSignedIn, isAuthenticated, isEducator } = require('../controllers/authController');
 const { courseUpload, getUserCourses, moduleUpload, getCoursesById, getModules, isHisCourse, lessonUpload, getAllCourses, enrollCourse } = require('../controllers/courseController');
-const { getUserById } = require('../controllers/userController');
+const { getUserById, getEnrolledCourses } = require('../controllers/userController');
 const multer = require('multer');
 
 
@@ -39,5 +39,7 @@ router.post('/lesson/:userId/:courseId', isSignedIn, isAuthenticated, isEducator
 lessonUpload);
 
 router.post('/enroll/:userId/:courseId', isSignedIn, isAuthenticated, enrollCourse);
+//student enrolled courses
+router.get('/enrolled/:userId', isSignedIn, isAuthenticated, getEnrolledCourses);
 
 module.exports = router;

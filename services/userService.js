@@ -18,6 +18,14 @@ class UserService {
             return null;
         }
     }
+
+    async getEnrolledCourses(userId) {
+        const user = await this.userRepository.findById(userId);
+        if (user) {
+            return user.courses;
+        }
+        return null;
+    }
         
 }
 

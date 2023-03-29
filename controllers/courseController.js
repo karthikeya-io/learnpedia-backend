@@ -73,6 +73,7 @@ exports.getAllCourses = (req, res) => {
     });
 }
 
+
 //educator created courses
 exports.getUserCourses = (req, res) => {
     const courseservice = new courseService();
