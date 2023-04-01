@@ -20,7 +20,7 @@ class CourseRepository {
     }
 
     async findCourseById(id) {
-        return await Course.findById(id);
+        return await Course.findById(id).populate('educator');
     }
 
     async getAllCourses() {
@@ -33,6 +33,10 @@ class CourseRepository {
 
     async findModuleById(id) {
         return await Module.findById(id);
+    }
+
+    async findLessonById(id) {
+        return await Lesson.findById(id);
     }
 }
 

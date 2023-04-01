@@ -13,7 +13,8 @@ class AuthService {
             user.educator = educator;
             await user.save();
         }
-        return user;
+        const { _id, firstname, lastname, role, phoneno } = user;
+        return { _id, firstname, lastname, role, phoneno };
     }
 
     async getUserById(id) {

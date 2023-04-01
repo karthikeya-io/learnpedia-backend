@@ -102,6 +102,20 @@ class CourseService {
         }
     }
 
+    async getLessonById(lessonId) {
+        try {
+            const lesson = await this.courseRepository.findLessonById(lessonId);
+            if (!lesson) {
+                return { error: 'Lesson not found', status: 401 };
+            }
+            return lesson;
+        } catch (error) {
+            console.log(error);
+            return { error: error.message, status: 500 };
+        }
+    }
+    
+
     //search course by substring of title
     async searchCourseByTitle(title) {
         const regex = new RegExp(data.cname, 'i') // 'i' makes it case insensitive
@@ -142,6 +156,43 @@ class CourseService {
             return { error: error.message, status: 500 };
         }
     }
+
+    //loop over all modules in course and get modules from modules schema
+    async getModulesofCourse(courseId) {
+        try {
+            const course = await this.courseRepository.findCourseById(courseId);
+            if (!course) {
+                return { error: 'Course not found', status: 401 };
+            }
+            const courseM = await course.populate('modules');
+            for (let i = 0; i < courseM.modules.length; i++) {
+                const module = await this.courseRepository.findModuleById(courseM.modules[i]._id);
+                courseM.modules[i] = module;
+            }
+            return courseM;
+        }catch (error) {
+            console.log(error);
+            return { error: error.message, status: 500 };
+        }
+    }
+
+    async hasEnrolled(courseId, userId) {
+        try {
+            const user = await this.userRepository.findById(userId);
+            if (!user) {
+                return { error: 'User not found', status: 401 };
+            }
+            const course = await this.courseRepository.findCourseById(courseId);
+            if (!course) {
+                return { error: 'Course not found', status: 401 };
+            }
+            const value = user.courses.some((item) => item._id.equals(courseId));
+            return value;
+        } catch (error) {
+            return { error: error.message, status: 500 };
+        }
+    }
+
 }
 
 module.exports = CourseService;

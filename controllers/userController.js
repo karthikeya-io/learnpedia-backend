@@ -2,20 +2,6 @@ const authticateService = require('../services/authService');
 const { check, validationResult } = require('express-validator');
 const UserService = require('../services/userService');
 
-exports.getUserById = (req, res, next, id) => {
-    const authservice = new authticateService();
-    console.log(req.body);
-    console.log(id)
-    authservice.getUserById(id).then((result) => {
-        // console.log(result);
-        req.profile = result;
-        next();
-    }).catch((err) => {
-        console.log(err);
-        res.status(500).json(err);
-    });
-}
-
 exports.getUser = (req, res) => {
     req.profile.salt = undefined;
     req.profile.encry_password = undefined;
@@ -34,4 +20,36 @@ exports.getEnrolledCourses = (req, res) => {
         res.status(500).json(err);
     }
     );
+}
+
+//middle ware
+exports.getUserById = (req, res, next, id) => {
+    const authservice = new authticateService();
+    console.log(req.body);
+    console.log(id)
+    authservice.getUserById(id).then((result) => {
+        // console.log(result);
+        req.profile = result;
+        next();
+    }).catch((err) => {
+        console.log(err);
+        res.status(500).json(err);
+    });
+}
+
+
+exports.isEnrolled = (req, res, next) => {
+    const userService = new UserService();
+    userService.isEnrolled(req.course._id, req.profile).then((result) => {
+        if (result) {
+            next();
+        } else {
+            res.status(403).json({
+                error: "Not enrolled"
+            });
+        }
+    }).catch((err) => {
+        console.log(err);
+        res.status(500).json(err);
+    });
 }

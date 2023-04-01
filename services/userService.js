@@ -26,6 +26,17 @@ class UserService {
         }
         return null;
     }
+
+    async isEnrolled(courseId, user) {
+        // loop over user.courses and check if course id is present
+        console.log(user.courses);
+        for (let i = 0; i < user.courses.length; i++) {
+            if (user.courses[i]._id.equals(courseId)) {
+                return true;
+            }
+        }
+        return false;
+    }
         
 }
 

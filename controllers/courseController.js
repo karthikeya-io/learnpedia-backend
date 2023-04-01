@@ -1,5 +1,7 @@
 const courseService = require('../services/courseService');
 const { check, validationResult } = require('express-validator');
+const fs = require('fs');
+const fileType = require('file-type');
 
 exports.courseUpload = (req, res) => {
     const errors = validationResult(req);
@@ -86,6 +88,8 @@ exports.getUserCourses = (req, res) => {
     });
 }
 
+
+
 //get modules of a course
 exports.getModules = (req, res) => {
     const courseservice = new courseService();
@@ -98,11 +102,68 @@ exports.getModules = (req, res) => {
     });
 }
 
+exports.getLessonVideo = async (req, res) => {
+    const path = 'uploads/' + req.lesson.filePath;
+    try {
+        const stat = fs.statSync(path);
+        const fileSize = stat.size;
+        const range = req.headers.range;
+        console.log(path)
+        const file = fs.readFileSync(path);
+        const fileTypeResult = await fileType.fromBuffer(file);
+        console.log(fileTypeResult)
+        const contentType = fileTypeResult.mime;
+
+        if (range) {
+            const parts = range.replace(/bytes=/, "").split("-");
+            const start = parseInt(parts[0], 10);
+            const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
+            const chunksize = (end - start) + 1;
+            const file = fs.createReadStream(path, { start, end });
+            const head = {
+                'Content-Range': `bytes ${start}-${end}/${fileSize}`,
+                'Accept-Ranges': 'bytes',
+                'Content-Length': chunksize,
+                'Content-Type': contentType,
+            }
+            res.writeHead(206, head);
+            file.pipe(res);
+        } else {
+            const head = {
+                'Content-Length': fileSize,
+                'Content-Type': contentType,
+            }
+            res.writeHead(200, head);
+            fs.createReadStream(path).pipe(res);
+        }
+    }
+    catch (err) {
+        throw err;
+    }
+}
+
+
 //middleware
 exports.getCoursesById = (req, res, next, id) => {
     const courseservice = new courseService();
+    if (id == 'undefined') {
+        return res.status(400).json({
+            error: "Bad request"
+        });
+    }
     courseservice.getCourseById(id).then((result) => {
         req.course = result;
+        next();
+    }).catch((err) => {
+        console.log(err);
+        res.status(500).json(err);
+    });
+}
+
+exports.getLessonById = (req, res, next, id) => {
+    const courseservice = new courseService();
+    courseservice.getLessonById(id).then((result) => {
+        req.lesson = result;
         next();
     }).catch((err) => {
         console.log(err);
@@ -117,4 +178,27 @@ exports.isHisCourse = (req, res, next) => {
         });
     }
     next();
+}
+
+
+exports.getModulesInCourse = (req, res, next) => {
+    const courseservice = new courseService();
+    courseservice.getModulesofCourse(req.course._id).then((result) => {
+        req.finalCourse = result;
+        next();
+    }).catch((err) => {
+        console.log(err);
+        res.status(500).json(err);
+    });
+}
+
+exports.hasEnrolled = (req, res, next) => {
+    const courseservice = new courseService();
+    courseservice.hasEnrolled(req.course._id, req.profile._id).then((result) => {
+        req.hasEnrolled = result;
+        next();
+    }).catch((err) => {
+        console.log(err);
+        res.status(500).json(err);
+    });
 }
