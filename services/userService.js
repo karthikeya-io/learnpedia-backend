@@ -37,7 +37,29 @@ class UserService {
         }
         return false;
     }
+
+    async getAllUsers() {
+        const users = await this.userRepository.findAll();
+        return users;
+    }
+
+    // update user
+    async updateUser(userId, updates) {
+        const allowedUpdates = ['firstname', 'lastname', 'phoneno', 'password']; // list of fields the user is allowed to update
+        const isValidUpdate = updates && Object.keys(updates).every((update) => allowedUpdates.includes(update));
+        console.log(updates);
+        console.log(isValidUpdate)
+        if (!isValidUpdate) {
+            return { error: 'Invalid updates!' };
+        }
+        const user = await this.userRepository.updateUser(userId, updates);
+        const { firstname, lastname, email, role, phoneno } = user;
+        return { firstname, lastname, email, role, phoneno };
         
+    }
+
+
+
 }
 
 module.exports = UserService;

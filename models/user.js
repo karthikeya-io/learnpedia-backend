@@ -49,7 +49,10 @@ const userSchema = new mongoose.Schema( {
     flag: {
         type: Number,
         default: 0
-    }
+    },
+    gender: {
+        type: String,
+    },
 
 },
     {timestamps: true}

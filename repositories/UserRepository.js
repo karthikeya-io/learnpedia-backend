@@ -27,7 +27,17 @@ class UserRepository {
   async deleteUser(id) {
     return await User.findByIdAndDelete(id);
   }
-  
+
+  async findAll() {
+    // get only the fields that are needed
+    return await User.find({}, { password: 0, __v: 0, courses: 0, salt: 0, encrypted_password: 0 });
+  }
+
+  // update user
+  async updateUser(id, updates) {
+      const user = await User.findByIdAndUpdate(id, updates, { new: true, runValidators: true });
+      return user;
+  }
 }
 
 module.exports = UserRepository;

@@ -118,7 +118,7 @@ class CourseService {
 
     //search course by substring of title
     async searchCourseByTitle(title) {
-        const regex = new RegExp(data.cname, 'i') // 'i' makes it case insensitive
+        const regex = new RegExp(title, 'i') // 'i' makes it case insensitive
         return await this.courseRepository.searchCourseByTitle(regex);
     }
 

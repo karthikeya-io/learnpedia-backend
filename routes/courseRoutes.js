@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { check, validationResult } = require('express-validator');
 const { isSignedIn, isAuthenticated, isEducator } = require('../controllers/authController');
-const { courseUpload, getUserCourses, moduleUpload, getCoursesById, getModules, isHisCourse, lessonUpload, getAllCourses, enrollCourse, getModulesInCourse, getLessonById, getLessonVideo } = require('../controllers/courseController');
+const { courseUpload, getUserCourses, moduleUpload, getCoursesById, getModules, isHisCourse, lessonUpload, getAllCourses, enrollCourse, getModulesInCourse, getLessonById, getLessonVideo, searchCourse } = require('../controllers/courseController');
 const { getUserById, getEnrolledCourses, isEnrolled } = require('../controllers/userController');
 const multer = require('multer');
 
@@ -23,6 +23,9 @@ const upload = multer({ storage: storage });
 router.param('userId', getUserById)
 router.param('courseId', getCoursesById)
 router.param('lessonId', getLessonById)
+
+//search courses
+router.get('/search', searchCourse);
 
 router.post('/courseupload/:userId', [
     check("title", "title should be atleast 3 char").isLength({ min: 3 }),

@@ -49,6 +49,7 @@ exports.logOut = (req, res) => {
 
 exports.isSignedIn = (req, res, next) => {
     const authHeader = req.headers["authorization"];
+    console.log(authHeader)
     const token = authHeader && authHeader.split(' ')[1];
     console.log(token);
     req.token = token;
@@ -94,4 +95,13 @@ exports.isEducator = (req, res, next) => {
             });
         }
         next();
+}
+
+exports.isAdmin = (req, res, next) => {
+    if(req.user.role !== "admin") {
+        return res.status(401).json({
+            error: "User not authorized"
+        });
+    }
+    next();
 }

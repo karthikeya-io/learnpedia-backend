@@ -1,5 +1,7 @@
 const express = require('express');
-const multer = require('multer');
+const fs = require('fs');
+const path = require('path');
+const morgan = require('morgan');
 
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
@@ -12,6 +14,7 @@ const app = express();
 //my routes
 const authRoutes = require("./routes/authRoutes");
 const courseRoutes = require("./routes/courseRoutes");
+const userRoutes = require("./routes/userRoutes");
 
 //swagger
 const options = {
@@ -43,10 +46,19 @@ app.use(bodyParser.urlencoded({
 app.use(cookieParser());
 app.use(cors());
 
+// create a write stream (in append mode) for the log file
+const accessLogStream = fs.createWriteStream(
+  path.join(__dirname, 'logs/access.log'), { flags: 'a' }
+);
+
+// setup the logger middleware using the "combined" format
+app.use(morgan('combined', { stream: accessLogStream }));
+
+
 //my routes
 app.use("/api", authRoutes)
 app.use("/api", courseRoutes)
-
+app.use("/api", userRoutes)
 
 
 const port = 3001;
@@ -58,20 +70,3 @@ app.get('/', (req, res) => {
   res.send('Hello World!');
 });
 
-// // Set up multer middleware for file uploads
-// const storage = multer.diskStorage({
-//   destination: function (req, file, cb) {
-//     cb(null, 'uploads/'); // Set the destination folder for uploaded files
-//   },
-//   filename: function (req, file, cb) {
-//     cb(null, Date.now() + '-' + file.originalname); // Set the filename of the uploaded file
-//   }
-// });
-// const upload = multer({ storage: storage });
-
-// app.post('/lesson', upload.single('video'), (req, res) => {
-//   console.log("hello");
-//   console.log(req.body);
-//   console.log(req.file)
-//   res.status(200).json({message: "lesson uploaded :)"});
-// })
