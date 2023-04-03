@@ -58,6 +58,12 @@ class UserService {
         
     }
 
+    // add questions
+    async addQuestion(data, user) {
+        const question = await this.userRepository.createQuestion(data, user);
+        return question;
+    }
+
 
 
 }

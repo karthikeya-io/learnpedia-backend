@@ -1,5 +1,6 @@
 const User = require('../models/user');
 const Educator = require('../models/educator');
+const Question = require('../models/question');
 
 class UserRepository {
   async findById(id) {
@@ -37,6 +38,12 @@ class UserRepository {
   async updateUser(id, updates) {
       const user = await User.findByIdAndUpdate(id, updates, { new: true, runValidators: true });
       return user;
+  }
+
+  async createQuestion(data, user) {
+    const question = new Question(data);
+    question.user = user;
+    return await question.save();
   }
 }
 

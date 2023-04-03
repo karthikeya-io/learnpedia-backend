@@ -44,6 +44,17 @@ exports.updateUser = (req, res) => {
     });
 }
 
+// add question
+exports.addQuestion = (req, res) => {
+    const userService = new UserService();
+    userService.addQuestion(req.body, req.profile).then((result) => {
+        res.status(200).json(result);
+    }).catch((err) => {
+        console.log(err);
+        res.status(500).json(err);
+    });
+}
+
 //middle ware
 exports.getUserById = (req, res, next, id) => {
     const authservice = new authticateService();
@@ -75,3 +86,4 @@ exports.isEnrolled = (req, res, next) => {
         res.status(500).json(err);
     });
 }
+
