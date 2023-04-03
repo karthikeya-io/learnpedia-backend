@@ -35,6 +35,37 @@ router.post('/courseupload/:userId', [
 router.post('/moduleupload/:userId', isSignedIn, isAuthenticated, isEducator, moduleUpload);
 
 
+
+router.get('/courses', getAllCourses)
+
+//educator created courses
+router.get('/courses/:userId', isSignedIn, isAuthenticated, isEducator, getUserCourses);
+router.get('/module/:userId/:courseId', isSignedIn, isAuthenticated, isEducator, getModules);
+router.post('/lesson/:userId/:courseId', isSignedIn, isAuthenticated, isEducator,isHisCourse, upload.single('video'),
+lessonUpload);
+
+router.post('/enroll/:userId/:courseId', isSignedIn, isAuthenticated, enrollCourse);
+//student enrolled courses
+router.get('/enrolled/:userId', isSignedIn, isAuthenticated, getEnrolledCourses);
+
+//rourte to return entire course with modules and lessons
+router.get('/course/:courseId',getModulesInCourse, (req, res) => {
+    res.json(req.finalCourse);
+});
+
+
+//get lesson
+router.get('/lesson/:lessonId', (req, res) => {
+    res.json(req.lesson);
+})
+
+//get lesson video
+router.get('/lesson/:userId/:courseId/:lessonId', isSignedIn, isAuthenticated, isEnrolled, getLessonVideo)
+
+module.exports = router;
+
+
+
 /**
  * @swagger
  *  /courses:
@@ -54,7 +85,6 @@ router.post('/moduleupload/:userId', isSignedIn, isAuthenticated, isEducator, mo
  *          description : courses not found
  */
 
-router.get('/courses', getAllCourses)
 
 //educator created courses
 /**
@@ -88,52 +118,487 @@ router.get('/courses', getAllCourses)
  *
  */
 
+//educator created courses
 /**
  * @swagger
- *  /courses/:userId:
- *    get:
- *     summary: returns all the courses of a parrticular student
- *     tags : [courses]
+ *  components:
+ *    schemas:
+ *     educatorcourses:
+ *         type: object
+ *         required:
+ *            - category
+ *            - _id
+ *            - rating
+ *            - createdAt
+ *            - updatedAt
+ *            - desc
+ *            - price
+ *            - title
+ *            - __v
+ *            - educator
+ *         properties:
+ *              _id:
+ *               type: integer
+ *               description : auto generated number by system
+ *              category:
+ *                type: string
+ *                description : This is a describes about the type of course
+ *              desc:
+ *                type: string
+ *                description : This is a brief about the course details
+ *              price:
+ *                type: string
+ *                description : This is cost of the course
+ *              title:
+ *                type: string
+ *                description : This is title of the course.
+ *              rating:
+ *                type: string
+ *              createdAt:
+ *                type: string
+ *              updatedAt:
+ *                type: string
+ *              __v:
+ *                type: string
+ *              educator:
+ *                type: string
+ *
+ *
+ */
+
+//  *     security:
+//  *       - bearerAuth: []
+//  *     # Add a script to retrieve the token value from local storage and send the request with the token header
+//  *     x-code-samples:
+//  *       - lang: javascript
+//  *         source: |
+//  *           const token = localStorage.getItem('myToken');
+//  *           fetch('https://localhost:3001/api/courses', {
+//  *             method: 'GET',
+//  *             headers: {
+//  *               'authorization': token,
+//  *             },
+//  *           })
+//  *             .then(response => response.json())
+//  *             .then(data => console.log(data))
+//  *             .catch(error => console.error(error));
+
+/**
+ * @swagger
+ * /courses/{userId}:
+ *   get:
+ *     tags:
+ *          - courses
+ *     summary: returns all the courses of a particular student
  *     parameters:
- *     - in: path
- *       name: id
- *       schema:
- *         type: integer
- *       required: true
- *       description : user id
+ *       - name: authorization
+ *         in: header
+ *         description: Custom header for the request
+ *         required: true
+ *         type: string
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         description : user id
  *     responses:
- *        200:
+ *       200:
  *         description: returns list of courses
  *         content:
  *           application/json:
- *             schema:
- *              type: array
- *              items:
- *               $ref: '#/components/schemas/courses'
- *        404:
+ *             type: array
+ *             items:
+ *                  $ref: '#/components/schemas/educatorscourses'
+ *       404:
  *          description : courses not found and invalid user id
  */
-router.get('/courses/:userId', isSignedIn, isAuthenticated, isEducator, getUserCourses);
-router.get('/module/:userId/:courseId', isSignedIn, isAuthenticated, isEducator, getModules);
-router.post('/lesson/:userId/:courseId', isSignedIn, isAuthenticated, isEducator,isHisCourse, upload.single('video'),
-lessonUpload);
 
-router.post('/enroll/:userId/:courseId', isSignedIn, isAuthenticated, enrollCourse);
+/**
+ * @swagger
+ * /module/{userId}/{courseId}:
+ *   get:
+ *     tags:
+ *          - courses
+ *     summary: returns all the courses of a particular student
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: authorization
+ *         in: header
+ *         description: Custom header for the request
+ *         required: true
+ *         schema:
+ *           type: string
+ *       - in: path
+ *         name: userId
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description : user id
+ *       - in: path
+ *         name: courseId
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description : course Id
+ *     responses:
+ *       200:
+ *         description: returns list of courses
+ *         content:
+ *           application/json:
+ *             type: array
+ *             items:
+ *                  $ref: '#/components/schemas/courses'
+ *       404:
+ *          description : courses not found and invalid user id
+ *     # Add a script to retrieve the token value from local storage and send the request with the token header
+ *     x-code-samples:
+ *       - lang: javascript
+ *         source: |
+ *           const token = localStorage.getItem('myToken');
+ *           fetch('https://localhost:3001/api/courses', {
+ *             method: 'GET',
+ *             headers: {
+ *               'x-auth-token': token,
+ *             },
+ *           })
+ *             .then(response => response.json())
+ *             .then(data => console.log(data))
+ *             .catch(error => console.error(error));
+ */
+
+/**
+ * @swagger
+ *    components:
+ *      schemas:
+ *        lessonuploadreq:
+ *          type: object
+ *          required:
+ *              - title
+ *              - courseid
+ *              - moduleid
+ *              - desc
+ *              - video
+ *          properties:
+ *              title:
+ *                type: string
+ *              courseid:
+ *                type: string
+ *              moduleid:
+ *                type: string
+ *              desc:
+ *                type: string
+ *              video:
+ *                type: Number
+ * 
+ */
+
+
+/**
+ * @swagger
+ *  /lesson/{userId}/{courseId}:
+ *    post:
+ *      tags:
+ *           - courses
+ *      summary: register a user 
+ *      security:
+ *          - bearerAuth: []
+ *      parameters:
+ *          - name: authorization
+ *            in: header
+ *            description: Custom header for the request
+ *            required: true
+ *            schema:
+ *                type: string
+ *          - in: path
+ *            name: userId
+ *            schema:
+ *                type: string
+ *            required: true
+ *            description : user id
+ *          - in: path
+ *            name: courseId
+ *            schema:
+ *                type: string
+ *            required: true
+ *            description : course Id
+ *      requestBody:
+ *          required: true
+ *          content:
+ *              application/json:
+ *          schema:
+ *              $ref:'#/components/schemas/lessonuploadreq'
+ *      responses:
+ *          200: 
+ *            description: success
+ *            content:
+ *                application/json:
+ *            schema:
+ *               $ref:'#/components/schemas/lessonuploadreq'
+ *          409: 
+ *              description: conflict
+ *          400: 
+ *            description: bad request
+ */
+
+
+/**
+ * @swagger
+ * /enroll/{userId}/{courseId}:
+ *  post:
+ *    tags:
+ *          - courses
+ *    summary: register a user 
+ *    security:
+ *       - bearerAuth: []
+ *    parameters:
+ *       - name: authorization
+ *         in: header
+ *         description: Custom header for the request
+ *         required: true
+ *         schema:
+ *           type: string
+ *       - in: path
+ *         name: userId
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description : user id
+ *       - in: path
+ *         name: courseId
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description : course Id
+ *    requestBody:
+ *     required: true
+ *     content:
+ *       application/json:
+ *         schema:
+ *              type:string
+ *    responses:
+ *       200: 
+ *         description: success
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type:string
+ *       409: 
+ *         description: conflict
+ *       400: 
+ *         description: bad request
+ */
+
+
 //student enrolled courses
-router.get('/enrolled/:userId', isSignedIn, isAuthenticated, getEnrolledCourses);
+
+/**
+ * @swagger
+ * /enrolled/{userId}:
+ *   get:
+ *     tags:
+ *          - courses
+ *     summary: returns all the courses of a particular student
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: x-auth-token
+ *         in: header
+ *         description: Custom header for the request
+ *         required: true
+ *         schema:
+ *           type: string
+ *       - in: path
+ *         name: userId
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description : user id
+ *     responses:
+ *       200:
+ *         description: returns list of courses
+ *         content:
+ *           application/json:
+ *             type: array
+ *             items:
+ *                  $ref: '#/components/schemas/courses'
+ *       404:
+ *          description : courses not found and invalid user id
+ *     # Add a script to retrieve the token value from local storage and send the request with the token header
+ *     x-code-samples:
+ *       - lang: javascript
+ *         source: |
+ *           const token = localStorage.getItem('myToken');
+ *           fetch('https://localhost:3001/api/courses', {
+ *             method: 'GET',
+ *             headers: {
+ *               'x-auth-token': token,
+ *             },
+ *           })
+ *             .then(response => response.json())
+ *             .then(data => console.log(data))
+ *             .catch(error => console.error(error));
+ */
 
 //rourte to return entire course with modules and lessons
-router.get('/course/:courseId',getModulesInCourse, (req, res) => {
-    res.json(req.finalCourse);
-});
+
+/**
+ * @swagger
+ * /course/{courseId}:
+ *   get:
+ *     tags:
+ *          - courses
+ *     summary: returns all the courses of a particular student
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: x-auth-token
+ *         in: header
+ *         description: Custom header for the request
+ *         required: true
+ *         schema:
+ *           type: string
+ *       - in: path
+ *         name: courseId
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description : course Id
+ *     responses:
+ *       200:
+ *         description: returns list of courses
+ *         content:
+ *           application/json:
+ *             type: array
+ *             items:
+ *                  $ref: '#/components/schemas/courses'
+ *       404:
+ *          description : courses not found and invalid user id
+ *     # Add a script to retrieve the token value from local storage and send the request with the token header
+ *     x-code-samples:
+ *       - lang: javascript
+ *         source: |
+ *           const token = localStorage.getItem('myToken');
+ *           fetch('https://localhost:3001/api/courses', {
+ *             method: 'GET',
+ *             headers: {
+ *               'x-auth-token': token,
+ *             },
+ *           })
+ *             .then(response => response.json())
+ *             .then(data => console.log(data))
+ *             .catch(error => console.error(error));
+ */
+
 
 
 //get lesson
-router.get('/lesson/:lessonId', (req, res) => {
-    res.json(req.lesson);
-})
+/**
+ * @swagger
+ * /lesson/{lessonId}:
+ *   get:
+ *     tags:
+ *          - courses
+ *     summary: returns a course lesson
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: x-auth-token
+ *         in: header
+ *         description: Custom header for the request
+ *         required: true
+ *         schema:
+ *           type: string
+ *       - in: path
+ *         name: lessonId
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description : lesson Id
+ *     responses:
+ *       200:
+ *         description: returns lesson
+ *         content:
+ *           application/json:
+ *             type: array
+ *             items:
+ *                  $ref: '#/components/schemas/courses'
+ *       404:
+ *          description : courses not found and invalid user id
+ *     # Add a script to retrieve the token value from local storage and send the request with the token header
+ *     x-code-samples:
+ *       - lang: javascript
+ *         source: |
+ *           const token = localStorage.getItem('myToken');
+ *           fetch('https://localhost:3001/api/courses', {
+ *             method: 'GET',
+ *             headers: {
+ *               'x-auth-token': token,
+ *             },
+ *           })
+ *             .then(response => response.json())
+ *             .then(data => console.log(data))
+ *             .catch(error => console.error(error));
+ */
+
 
 //get lesson video
-router.get('/lesson/:userId/:courseId/:lessonId', isSignedIn, isAuthenticated, isEnrolled, getLessonVideo)
+/**
+ * @swagger
+ * /lesson/{userId}/{courseId}/{lessonId}:
+ *   get:
+ *     tags:
+ *          - courses
+ *     summary: returns a lesson video
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: x-auth-token
+ *         in: header
+ *         description: Custom header for the request
+ *         required: true
+ *         schema:
+ *           type: string
+ *       - in: path
+ *         name: userId
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description : user Id
+ *       - in: path
+ *         name: courseId
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description : course Id
+ *       - in: path
+ *         name: courseId
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description : course Id
+ *     responses:
+ *       200:
+ *         description: returns a lesson video
+ *         content:
+ *           application/json:
+ *             type: array
+ *             items:
+ *                  $ref: '#/components/schemas/courses'
+ *       404:
+ *          description : courses not found and invalid user id
+ *     # Add a script to retrieve the token value from local storage and send the request with the token header
+ *     x-code-samples:
+ *       - lang: javascript
+ *         source: |
+ *           const token = localStorage.getItem('myToken');
+ *           fetch('https://localhost:3001/api/courses', {
+ *             method: 'GET',
+ *             headers: {
+ *               'x-auth-token': token,
+ *             },
+ *           })
+ *             .then(response => response.json())
+ *             .then(data => console.log(data))
+ *             .catch(error => console.error(error));
+ */
 
-module.exports = router;
