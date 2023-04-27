@@ -45,7 +45,7 @@ class UserService {
 
     // update user
     async updateUser(userId, updates) {
-        const allowedUpdates = ['firstname', 'lastname', 'phoneno', 'password']; // list of fields the user is allowed to update
+        const allowedUpdates = ['firstname', 'lastname', 'phoneno', 'password', 'profilePic']; // list of fields the user is allowed to update
         const isValidUpdate = updates && Object.keys(updates).every((update) => allowedUpdates.includes(update));
         console.log(updates);
         console.log(isValidUpdate)

@@ -3,6 +3,18 @@ const { check, validationResult } = require('express-validator');
 const fs = require('fs');
 const fileType = require('file-type');
 
+const { BlobServiceClient, StorageSharedKeyCredential, generateBlobSASQueryParameters, BlobSASPermissions } = require("@azure/storage-blob");
+const { DefaultAzureCredential } = require("@azure/core-http");
+
+const AZURE_STORAGE_ACCOUNT_NAME = process.env.AZURE_STORAGE_ACCOUNT_NAME;
+const AZURE_STORAGE_ACCOUNT_KEY = process.env.AZURE_STORAGE_ACCOUNT_KEY;
+
+const sharedKeyCredential = new StorageSharedKeyCredential(AZURE_STORAGE_ACCOUNT_NAME, AZURE_STORAGE_ACCOUNT_KEY);
+
+const AZURE_STORAGE_CONNECTION_STRING = process.env.AZURE_STORAGE_CONNECTION_STRING;
+const blobServiceClient = BlobServiceClient.fromConnectionString(AZURE_STORAGE_CONNECTION_STRING);
+const containerName = "videos";
+
 //search courses
 exports.searchCourse = (req, res) => {
     const courseservice = new courseService();
@@ -116,43 +128,66 @@ exports.getModules = (req, res) => {
 }
 
 exports.getLessonVideo = async (req, res) => {
-    const path = 'uploads/' + req.lesson.filePath;
-    try {
-        const stat = fs.statSync(path);
-        const fileSize = stat.size;
-        const range = req.headers.range;
-        console.log(path)
-        const file = fs.readFileSync(path);
-        const fileTypeResult = await fileType.fromBuffer(file);
-        console.log(fileTypeResult)
-        const contentType = fileTypeResult.mime;
+    console.log('hello')
+    console.log(req.lesson.filePath);
+    let url = "";
+        try {
+            const containerClient = blobServiceClient.getContainerClient(containerName);
+            const blobClient = containerClient.getBlobClient(req.lesson.filePath);
+            if (await blobClient.exists()) {
+                const sasToken = generateBlobSASQueryParameters({
+                    containerName,
+                    blobName: req.lesson.filepath,
+                    permissions: BlobSASPermissions.parse("r"), // "r" means read permission
+                    startsOn: new Date(),
+                    expiresOn: new Date(new Date().valueOf() + 86400), // Expires in 24 hours
+                }, sharedKeyCredential).toString();
 
-        if (range) {
-            const parts = range.replace(/bytes=/, "").split("-");
-            const start = parseInt(parts[0], 10);
-            const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
-            const chunksize = (end - start) + 1;
-            const file = fs.createReadStream(path, { start, end });
-            const head = {
-                'Content-Range': `bytes ${start}-${end}/${fileSize}`,
-                'Accept-Ranges': 'bytes',
-                'Content-Length': chunksize,
-                'Content-Type': contentType,
+                url = blobClient.url + "?" + sasToken;
             }
-            res.writeHead(206, head);
-            file.pipe(res);
-        } else {
-            const head = {
-                'Content-Length': fileSize,
-                'Content-Type': contentType,
-            }
-            res.writeHead(200, head);
-            fs.createReadStream(path).pipe(res);
+        } catch (error) {
+            console.error(error);
+            return res.status(500).json({ error: "Something went wrong" });
         }
-    }
-    catch (err) {
-        throw err;
-    }
+        console.log(url);
+        res.status(200).json(url);
+    // const path = 'uploads/' + req.lesson.filePath;
+    // try {
+    //     const stat = fs.statSync(path);
+    //     const fileSize = stat.size;
+    //     const range = req.headers.range;
+    //     console.log(path)
+    //     const file = fs.readFileSync(path);
+    //     const fileTypeResult = await fileType.fromBuffer(file);
+    //     console.log(fileTypeResult)
+    //     const contentType = fileTypeResult.mime;
+
+    //     if (range) {
+    //         const parts = range.replace(/bytes=/, "").split("-");
+    //         const start = parseInt(parts[0], 10);
+    //         const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
+    //         const chunksize = (end - start) + 1;
+    //         const file = fs.createReadStream(path, { start, end });
+    //         const head = {
+    //             'Content-Range': `bytes ${start}-${end}/${fileSize}`,
+    //             'Accept-Ranges': 'bytes',
+    //             'Content-Length': chunksize,
+    //             'Content-Type': contentType,
+    //         }
+    //         res.writeHead(206, head);
+    //         file.pipe(res);
+    //     } else {
+    //         const head = {
+    //             'Content-Length': fileSize,
+    //             'Content-Type': contentType,
+    //         }
+    //         res.writeHead(200, head);
+    //         fs.createReadStream(path).pipe(res);
+    //     }
+    // }
+    // catch (err) {
+    //     throw err;
+    // }
 }
 
 

@@ -1,6 +1,18 @@
 const jwt = require('jsonwebtoken');
 const UserRepository = require('../repositories/UserRepository');
 
+const { BlobServiceClient, StorageSharedKeyCredential, generateBlobSASQueryParameters, BlobSASPermissions } = require("@azure/storage-blob");
+const { DefaultAzureCredential } = require("@azure/core-http");
+
+const AZURE_STORAGE_ACCOUNT_NAME = process.env.AZURE_STORAGE_ACCOUNT_NAME;
+const AZURE_STORAGE_ACCOUNT_KEY = process.env.AZURE_STORAGE_ACCOUNT_KEY;
+
+const sharedKeyCredential = new StorageSharedKeyCredential(AZURE_STORAGE_ACCOUNT_NAME, AZURE_STORAGE_ACCOUNT_KEY);
+
+const AZURE_STORAGE_CONNECTION_STRING = process.env.AZURE_STORAGE_CONNECTION_STRING;
+const blobServiceClient = BlobServiceClient.fromConnectionString(AZURE_STORAGE_CONNECTION_STRING);
+const containerName = "container0";
+
 class AuthService {
     constructor() {
         this.userRepository = new UserRepository();
@@ -28,7 +40,7 @@ class AuthService {
         }
 
 
-        if(!user.authenticate(password)) {
+        if (!user.authenticate(password)) {
             return { error: 'Wrong password', status: 401 };
         }
 
@@ -36,12 +48,33 @@ class AuthService {
             return { error: 'User is blocked', status: 401 };
         }
         const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET, { expiresIn: '1d' });
+        let url = "";
+        if (user.profilePic ) {
+        try {
+            const containerClient = blobServiceClient.getContainerClient(containerName);
+            const blobClient = containerClient.getBlobClient(user.profilePic);
+            if (await blobClient.exists()) {
+                const sasToken = generateBlobSASQueryParameters({
+                    containerName,
+                    blobName: user.profilePic,
+                    permissions: BlobSASPermissions.parse("r"), // "r" means read permission
+                    startsOn: new Date(),
+                    expiresOn: new Date(new Date().valueOf() + 86400), // Expires in 24 hours
+                }, sharedKeyCredential).toString();
 
+                url = blobClient.url + "?" + sasToken;
+            }
+        } catch (error) {
+            console.error(error);
+        }
+    }
+        console.log(url);
         const { _id, firstname, lastname, role, phoneno } = user;
 
-        return { token, user: { _id, firstname, email, role, lastname, phoneno } };
-
-
+        if (url === "") {
+            return { token, user: { _id, firstname, email, role, lastname, phoneno } };
+        }
+        return { token, user: { _id, firstname, email, role, lastname, phoneno, url } };
     }
 
     async verifyToken(token) {

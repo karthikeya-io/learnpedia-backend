@@ -1,4 +1,4 @@
 /config/.env
 /uploads/
 node_modules
-/logs/access.log
+# /logs/access.log

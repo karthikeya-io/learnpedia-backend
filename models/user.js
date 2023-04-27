@@ -52,8 +52,9 @@ const userSchema = new mongoose.Schema( {
     },
     gender: {
         type: String,
-    },
-
+    }, profilePic: {
+        type: String,
+    }
 },
     {timestamps: true}
 )
