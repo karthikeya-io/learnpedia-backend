@@ -36,6 +36,10 @@ const courseSchema = new mongoose.Schema(
             type: Number,
             default: 0,
             Range: [0, 5]
+        },
+        qna: {
+            type: Array,
+            default: []
         }
     },
     {timestamps: true}

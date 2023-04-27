@@ -5,6 +5,7 @@ const { isSignedIn, isAuthenticated, isEducator } = require('../controllers/auth
 const { courseUpload, getUserCourses, moduleUpload, getCoursesById, getModules, isHisCourse, lessonUpload, getAllCourses, enrollCourse, getModulesInCourse, getLessonById, getLessonVideo, searchCourse } = require('../controllers/courseController');
 const { getUserById, getEnrolledCourses, isEnrolled } = require('../controllers/userController');
 const multer = require('multer');
+const courseController = require('../controllers/courseController')
 
 
 // Set up multer middleware for file uploads
@@ -58,6 +59,8 @@ router.get('/course/:courseId',getModulesInCourse, (req, res) => {
 router.get('/lesson/:lessonId', (req, res) => {
     res.json(req.lesson);
 })
+
+router.post('/update-rating', courseController.updateRating)
 
 //get lesson video
 router.get('/lesson/:userId/:courseId/:lessonId', isSignedIn, isAuthenticated, isEnrolled, getLessonVideo)

@@ -19,6 +19,8 @@ exports.getAllUsers = (req, res) => {
 }
 
 
+
+
 //get user enrolled courses
 exports.getEnrolledCourses = (req, res) => {
     const userService = new UserService();
