@@ -1,0 +1,42 @@
+name: Docker CI
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build_and_push:
+    runs-on: ubuntu-latest
+    env:
+      DB_CONNECT: ${{ secrets.DB_CONNECT }}
+      JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
+      AZURE_STORAGE_CONNECTION_STRING: ${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}
+      AZURE_STORAGE_ACCOUNT_NAME: ${{ secrets.AZURE_STORAGE_ACCOUNT_NAME }}
+      AZURE_STORAGE_ACCOUNT_KEY: ${{ secrets.AZURE_STORAGE_ACCOUNT_KEY }}
+
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v2
+
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v1
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v2
+      with:
+        context: .
+        push: true
+        tags: karthikeya01/learnpedia-backend-image-ci:v1
+        build-args: |
+          DB_CONNECT=${{ env.DB_CONNECT }}
+          JWT_SECRET=${{ env.JWT_SECRET }}
+          REDIS_PASSWORD=${{ env.REDIS_PASSWORD }}
+          AZURE_STORAGE_CONNECTION_STRING=${{ env.AZURE_STORAGE_CONNECTION_STRING }}
+          AZURE_STORAGE_ACCOUNT_NAME=${{ env.AZURE_STORAGE_ACCOUNT_NAME }}
+          AZURE_STORAGE_ACCOUNT_KEY=${{ env.AZURE_STORAGE_ACCOUNT_KEY }}
+          

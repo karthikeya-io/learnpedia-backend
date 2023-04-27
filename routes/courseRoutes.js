@@ -7,18 +7,26 @@ const { getUserById, getEnrolledCourses, isEnrolled } = require('../controllers/
 const multer = require('multer');
 const courseController = require('../controllers/courseController')
 
+const { BlobServiceClient } = require("@azure/storage-blob");
+
+
+const AZURE_STORAGE_CONNECTION_STRING = process.env.AZURE_STORAGE_CONNECTION_STRING;
+const blobServiceClient = BlobServiceClient.fromConnectionString(AZURE_STORAGE_CONNECTION_STRING);
+const containerName = "videos";
 
 // Set up multer middleware for file uploads
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, 'uploads/'); // Set the destination folder for uploaded files
-  },
-  filename: function (req, file, cb) {
-    req.fileName = Date.now() + '-' + file.originalname;
-    cb(null, req.fileName); // Set the filename of the uploaded file
-  }
-});
-const upload = multer({ storage: storage });
+// const storage = multer.diskStorage({
+//   destination: function (req, file, cb) {
+//     cb(null, 'uploads/'); // Set the destination folder for uploaded files
+//   },
+//   filename: function (req, file, cb) {
+//     req.fileName = Date.now() + '-' + file.originalname;
+//     cb(null, req.fileName); // Set the filename of the uploaded file
+//   }
+// });
+// const upload = multer({ storage: storage });
+const upload = multer({ storage: multer.memoryStorage() });
+
 
 
 router.param('userId', getUserById)
@@ -43,6 +51,26 @@ router.get('/courses', getAllCourses)
 router.get('/courses/:userId', isSignedIn, isAuthenticated, isEducator, getUserCourses);
 router.get('/module/:userId/:courseId', isSignedIn, isAuthenticated, isEducator, getModules);
 router.post('/lesson/:userId/:courseId', isSignedIn, isAuthenticated, isEducator,isHisCourse, upload.single('video'),
+async (req, res, next) => {
+  try {
+      console.log(req.file);
+      const containerClient = blobServiceClient.getContainerClient(containerName);
+      req.fileName = Date.now() + '-' + req.file.originalname;
+      const blobClient = containerClient.getBlockBlobClient(req.fileName);
+      const uploadResponse = await blobClient.upload(req.file.buffer, req.file.size);
+      if (uploadResponse._response.status === 201) {
+        // get the url of the uploaded file from the blob service
+          // req.body.profilePic = blobClient.url;
+          console.log("File uploaded to Azure Blob storage successfully");
+        } else {
+          return res.status(500).json({ message: "Failed to upload file" });
+        }
+  } catch (error) {
+      console.error(error);
+      return res.status(500).json({ message: "An error occurred while uploading the file" });
+  }
+  next();
+},
 lessonUpload);
 
 router.post('/enroll/:userId/:courseId', isSignedIn, isAuthenticated, enrollCourse);
