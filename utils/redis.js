@@ -1,18 +1,17 @@
-const redis = require('redis');
+// const redis = require('redis');
 
-const client = redis.createClient({
-    password: process.env.REDIS_PASSWORD,
-    socket: {
-        host: 'redis-13870.c264.ap-south-1-1.ec2.cloud.redislabs.com',
-        port: 13870
-    }
-});
-client.connect()
-client.on('connect', () => {
-    console.log('Connected to Redis!');
-}  
-);
-
+// const client = redis.createClient({
+//     password: process.env.REDIS_PASSWORD,
+//     socket: {
+//         host: 'redis-13870.c264.ap-south-1-1.ec2.cloud.redislabs.com',
+//         port: 13870
+//     }
+// });
+// client.connect()
+// client.on('connect', () => {
+//     console.log('Connected to Redis!');
+// }
+// );
 
 // // A function to get the max memory configuration value
 // async function getMaxMemory() {
@@ -31,10 +30,10 @@ client.on('connect', () => {
 // const storeDataIfSizeIsOk = async (key, value) => {
 //     try {
 //       const valueSizeInBytes = Buffer.byteLength(value, 'utf8');
-  
+
 //       // Get the maxmemory configuration value
 //       const maxMemory = await getMaxMemory();
-  
+
 //       // Check if the value size is less than the Redis max memory size
 //       if (valueSizeInBytes < maxMemory) {
 //         client.set(key, value, (err) => {
@@ -51,6 +50,5 @@ client.on('connect', () => {
 //       console.error('Error:', error);
 //     }
 //   }
-  
 
-module.exports = client;
+// module.exports = client;
