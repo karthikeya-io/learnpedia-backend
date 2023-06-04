@@ -33,7 +33,7 @@ class CourseRepository {
     //     return await Course.find();
     // }
     // console.log('courses does not exist in redis');
-    await client.set("courses", JSON.stringify(await Course.find()));
+    // await client.set("courses", JSON.stringify(await Course.find()));
     return await Course.find();
   }
 
